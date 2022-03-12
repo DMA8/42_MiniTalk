@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   client.c                                           :+:      :+:    :+:   */
+/*   client_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: syolando <syolando@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/14 13:47:54 by syolando          #+#    #+#             */
-/*   Updated: 2022/02/15 18:13:26 by syolando         ###   ########.fr       */
+/*   Updated: 2022/02/15 18:13:32 by syolando         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+int	g_all_bits = 0;
 
 int	is_numeric(char *str)
 {
@@ -29,6 +31,17 @@ int	is_numeric(char *str)
 			return (0);
 	}
 	return (1);
+}
+
+void	handler(int signum, siginfo_t *info, void *unused)
+{
+	int	a;
+
+	a = info->si_pid;
+	(void)unused;
+	(void)signum;
+	g_all_bits++;
+	usleep(500);
 }
 
 void	send_message(char *str, int pid)
@@ -61,7 +74,7 @@ void	send_byte(char c, int pid)
 			if (kill(pid, SIGUSR1))
 				exit(0);
 		}
-		usleep(100);
+		usleep(500);
 		j--;
 	}
 }
@@ -76,6 +89,8 @@ int	main(int argc, char **argv)
 		write(1, "wrong input!\n", 14);
 		return (0);
 	}
+	sa_sig.sa_flags = SA_SIGINFO;
+	sa_sig.sa_sigaction = handler;
 	if (sigaction(SIGUSR1, &sa_sig, NULL) == -1)
 		fatal("SIGUSR1 failure");
 	if (sigaction(SIGUSR2, &sa_sig, NULL) == -1)
@@ -87,5 +102,7 @@ int	main(int argc, char **argv)
 	}
 	server_pid = ft_atoi(argv[1]);
 	send_message(argv[2], server_pid);
+	ft_putnbr(g_all_bits);
+	write(1, " bits were transmitted\n", 24);
 	return (0);
 }

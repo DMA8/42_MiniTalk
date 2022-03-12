@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.c                                           :+:      :+:    :+:   */
+/*   server_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: syolando <syolando@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/14 13:47:59 by syolando          #+#    #+#             */
-/*   Updated: 2022/02/15 15:36:53 by syolando         ###   ########.fr       */
+/*   Updated: 2022/02/15 16:41:29 by syolando         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,18 @@ void	handler(int signum, siginfo_t *info, void *unused)
 	static int	bit_order = 0;
 
 	(void)unused;
-	(void)info;
 	if (signum == SIGUSR2)
 	{
 		result += counter;
 		counter = counter >> 1;
+		if (kill(info->si_pid, SIGUSR1) == -1)
+			fatal("Couldn't send SIGUSR1 back to client\n");
 	}
 	else if (signum == SIGUSR1)
 	{
 		counter = counter >> 1;
+		if (kill(info->si_pid, SIGUSR1) == -1)
+			fatal("Couldn't send SIGUSR2 back to client\n");
 	}
 	if (++bit_order == 8)
 	{
